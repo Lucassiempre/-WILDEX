@@ -1,18 +1,22 @@
 import type { Category, Species } from "../types";
+import { urbanSpecies } from "./urbanSpecies";
+import { expandedSpecies } from "./expandedSpecies";
 
 const commonsFile = (fileName: string) =>
-  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}`;
+  `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=900`;
 
 export const categories: Category[] = [
   "Mamíferos",
   "Aves",
   "Reptiles",
   "Anfibios",
+  "Peces",
+  "Arácnidos",
   "Insectos",
-  "Otros",
+  "Otros invertebrados",
 ];
 
-export const species: Species[] = [
+const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
   {
     id: "carpincho",
     commonName: "Carpincho",
@@ -163,6 +167,34 @@ export const species: Species[] = [
     rarity: "notable",
     sourceUrl: "https://commons.wikimedia.org/wiki/Category:Spheniscus_magellanicus",
   },
+];
+
+const wildDistributions: Record<string, string> = {
+  carpincho: "Sudamérica; humedales y riberas de Argentina.",
+  hornero: "Sudamérica; presente en varias regiones de Argentina.",
+  "zorro-colorado": "Regiones andinas y patagónicas de Sudamérica.",
+  yaguarete: "América; en Argentina sus poblaciones persisten en regiones del norte.",
+  "condor-andino": "Cordillera de los Andes y sierras de Sudamérica occidental.",
+  puma: "Amplia distribución americana; presente en diversas ecorregiones argentinas.",
+  "mariposa-monarca": "América; la migración más conocida ocurre en Norteamérica.",
+  tucan: "Centro y este de Sudamérica; en Argentina, principalmente el nordeste.",
+  "rana-criolla": "Sudamérica; presente en ambientes húmedos de Argentina.",
+  "pinguino-magallanes": "Costas del sur de Sudamérica, incluida la Patagonia argentina.",
+};
+
+export const species: Species[] = [
+  ...urbanSpecies,
+  ...expandedSpecies,
+  ...wildSpecies.map((item) => ({
+    ...item,
+    exploration: (["hornero", "carpincho", "rana-criolla"] as string[]).includes(item.id) ? "ambas" as const : "silvestre" as const,
+    explorationTypes: (["hornero", "carpincho", "rana-criolla"] as string[]).includes(item.id) ? ["urban", "wild"] as Array<"urban" | "wild"> : ["wild"] as Array<"wild">,
+    distribution: wildDistributions[item.id],
+    whereToFind: item.habitat,
+    conservationStatus: item.conservation,
+    funFacts: [item.curiosity],
+    regions: ["AR"],
+  })),
 ];
 
 export const getSpeciesById = (id: string) => species.find((item) => item.id === id);

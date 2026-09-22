@@ -1,14 +1,18 @@
 import { getSpeciesById, species } from "../data/species";
 import type { AnalysisResult } from "../types";
 
-type RecognitionRequest = {
+export type RecognitionRequest = {
   fileName?: string;
   demoSpeciesId?: string;
 };
 
+export interface RecognitionService {
+  identify(request: RecognitionRequest): Promise<AnalysisResult>;
+}
+
 const wait = (ms: number) => new Promise((resolve) => window.setTimeout(resolve, ms));
 
-export const identifySpecies = async ({
+const identifyDemo = async ({
   fileName = "",
   demoSpeciesId,
 }: RecognitionRequest): Promise<AnalysisResult> => {
@@ -43,10 +47,13 @@ export const identifySpecies = async ({
   }
 
   return {
-    status: "unconfirmed",
+    status: "unrecognized",
     mode: "demo",
     analyzedAt: new Date().toISOString(),
     message:
-      "No se pudo confirmar la especie. En este prototipo no hay un modelo de IA conectado; sube un archivo con el nombre de una especie demo o elige una especie de prueba.",
+      "Sin coincidencia demo. No se analizó el contenido de la foto; elegí una especie de prueba para recorrer el flujo.",
   };
 };
+
+export const demoRecognitionService: RecognitionService = { identify: identifyDemo };
+export const identifySpecies = demoRecognitionService.identify;

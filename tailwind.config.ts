@@ -5,17 +5,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        forest: "#12372A",
-        canopy: "#436850",
-        moss: "#ADBC9F",
-        paper: "#F8FAF5",
-        gold: "#D8A942",
-        ember: "#C96633",
-        ink: "#1C2420",
+        base: "rgb(var(--color-base) / <alpha-value>)",
+        surface: "rgb(var(--color-surface) / <alpha-value>)",
+        card: "rgb(var(--color-card) / <alpha-value>)",
+        soft: "rgb(var(--color-soft) / <alpha-value>)",
+        primary: "rgb(var(--color-primary) / <alpha-value>)",
+        secondary: "rgb(var(--color-secondary) / <alpha-value>)",
+        line: "rgb(var(--color-line) / <alpha-value>)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-secondary": "rgb(var(--color-accent-secondary) / <alpha-value>)",
+        "on-accent": "rgb(var(--color-on-accent) / <alpha-value>)",
+        gold: "rgb(var(--color-gold) / <alpha-value>)",
+        danger: "rgb(var(--color-danger) / <alpha-value>)",
+        "brand-deep": "#081610",
+        "brand-cream": "#F5F4EA",
+        "brand-leaf": "#A5D66D",
       },
       boxShadow: {
-        glow: "0 24px 80px rgba(18, 55, 42, 0.18)",
-        lift: "0 18px 45px rgba(18, 55, 42, 0.16)",
+        phone: "0 28px 80px rgba(0, 0, 0, 0.24)",
+        panel: "0 6px 24px rgba(8, 22, 16, 0.06)",
       },
       keyframes: {
         scan: {
@@ -23,7 +31,7 @@ export default {
           "100%": { transform: "translateY(210%)" },
         },
         pop: {
-          "0%": { transform: "scale(.96)", opacity: "0" },
+          "0%": { transform: "scale(.97) translateY(6px)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
       },

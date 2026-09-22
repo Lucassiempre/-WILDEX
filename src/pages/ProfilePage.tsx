@@ -1,8 +1,9 @@
-import { Award, CalendarDays, Medal, UserRound } from "lucide-react";
-import { getSpeciesById } from "../data/species";
-import { achievementsForState, categoryCounts, levelFromXp } from "../utils/gamification";
+import { Award, CalendarDays, Check, LockKeyhole, Medal, UserRound } from "lucide-react";
 import { ProgressBar } from "../components/ProgressBar";
+import { getSpeciesById } from "../data/species";
+import { AnimalImage } from "../components/AnimalImage";
 import type { ExplorerState } from "../types";
+import { achievementsForState, categoryCounts, challengesForState, discoveredSpeciesCount, levelFromXp } from "../utils/gamification";
 
 type ProfilePageProps = {
   state: ExplorerState;
@@ -13,84 +14,98 @@ export function ProfilePage({ state }: ProfilePageProps) {
   const counts = categoryCounts(state.discoveries);
   const topCategory = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
   const achievements = achievementsForState(state);
+  const unlockedCount = achievements.filter((item) => item.unlocked).length;
+  const challenges = challengesForState(state);
 
   return (
-    <div className="grid gap-5 pb-32">
-      <section className="rounded-[2rem] border border-forest/10 bg-white p-6 shadow-sm">
-        <div className="grid place-items-center rounded-[2rem] bg-forest p-8 text-center text-white">
-          <div className="grid h-28 w-28 place-items-center rounded-full border-4 border-gold bg-paper text-forest shadow-lift">
-            <UserRound size={52} aria-hidden="true" />
+    <div className="space-y-6 pb-24">
+      <section className="topographic rounded-lg bg-brand-deep p-5 text-brand-cream">
+        <div className="flex items-center gap-4">
+          <div className="grid h-20 w-20 shrink-0 place-items-center rounded-lg border border-brand-cream/20 bg-brand-leaf/10 text-brand-leaf">
+            <UserRound size={38} aria-hidden="true" />
           </div>
-          <h1 className="mt-5 text-4xl font-black">Martina</h1>
-          <p className="text-white/70">Exploradora de campo</p>
-          <div className="mt-6 w-full max-w-md">
-            <ProgressBar value={level.progress} label={`Nivel ${level.level} · ${state.xp} XP acumulados`} />
+          <div>
+            <p className="text-xs font-bold uppercase text-brand-leaf">Perfil del explorador</p>
+            <h1 className="mt-1 text-2xl font-bold">Martina</h1>
+            <p className="text-sm text-brand-cream/70">Exploradora de campo</p>
           </div>
         </div>
-
-        <div className="mt-5 grid gap-3">
-          <ProfileStat label="Especies" value={String(state.discoveries.length)} />
-          <ProfileStat label="Más explorada" value={topCategory?.[1] ? topCategory[0] : "Pendiente"} />
-          <ProfileStat label="Logros" value={`${achievements.filter((item) => item.unlocked).length}/${achievements.length}`} />
+        <div className="mt-6">
+          <div className="mb-2 flex justify-between text-sm font-semibold">
+            <span>Nivel {level.level}</span>
+            <span>{state.xp} XP</span>
+          </div>
+          <ProgressBar value={level.progress} label={`${level.nextLevelXp - level.currentLevelXp} XP para el próximo nivel`} />
         </div>
       </section>
 
-      <section className="space-y-6">
-        <div className="rounded-[2rem] border border-forest/10 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-3">
-            <Medal className="text-gold" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-canopy">Logros desbloqueados</p>
-              <h2 className="text-3xl font-black text-forest">Bitácora de progreso</h2>
-            </div>
-          </div>
-          <div className="grid gap-3">
-            {achievements.map((achievement) => (
-              <div
-                key={achievement.title}
-                className={`rounded-3xl border p-4 transition ${
-                  achievement.unlocked
-                    ? "border-gold/40 bg-gold/15 text-forest"
-                    : "border-forest/10 bg-paper text-forest/45"
-                }`}
-              >
-                <Award className={achievement.unlocked ? "text-gold" : "text-moss"} aria-hidden="true" />
-                <h3 className="mt-3 font-black">{achievement.title}</h3>
-                <p className="mt-1 text-sm leading-6">{achievement.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+      <section className="grid grid-cols-3 gap-2" aria-label="Estadísticas del perfil">
+        <ProfileStat label="Especies" value={String(discoveredSpeciesCount(state.discoveries))} />
+        <ProfileStat label="Categoría" value={topCategory?.[1] ? topCategory[0] : "—"} />
+        <ProfileStat label="Logros" value={`${unlockedCount}/${achievements.length}`} />
+      </section>
 
-        <div className="rounded-[2rem] border border-forest/10 bg-white p-6 shadow-sm">
-          <div className="mb-5 flex items-center gap-3">
-            <CalendarDays className="text-canopy" aria-hidden="true" />
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-canopy">Historial</p>
-              <h2 className="text-3xl font-black text-forest">Descubrimientos recientes</h2>
+      <section>
+        <div className="mb-3 flex items-center gap-2"><Award size={19} className="text-accent" aria-hidden="true" /><h2 className="text-lg font-bold text-primary">Desafíos de exploración</h2></div>
+        <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          {challenges.map((challenge) => <div key={challenge.title} className="p-4">
+            <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-primary">{challenge.title}</p><p className="mt-1 text-xs text-secondary">{challenge.description}</p></div><span className="shrink-0 text-xs font-bold text-accent">{challenge.current}/{challenge.target}</span></div>
+            <div className="mt-3"><ProgressBar value={challenge.current / challenge.target * 100} /></div>
+            <p className="mt-2 text-xs text-secondary">{challenge.completed ? "Completado" : `Recompensa: ${challenge.reward}`}</p>
+          </div>)}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center gap-2">
+          <Medal size={19} className="text-gold" aria-hidden="true" />
+          <h2 className="text-lg font-bold text-primary">Logros</h2>
+          <span className="ml-auto text-xs font-semibold text-secondary">{unlockedCount}/{achievements.length}</span>
+        </div>
+        <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          {achievements.map((achievement) => (
+            <div key={achievement.title} className="flex gap-3 p-4">
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-lg ${achievement.unlocked ? "bg-gold/15 text-gold" : "bg-soft text-secondary"}`}>
+                {achievement.unlocked ? <Award size={19} aria-hidden="true" /> : <LockKeyhole size={17} aria-hidden="true" />}
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-bold text-primary">{achievement.title}</h3>
+                  {achievement.unlocked ? <Check size={15} className="text-accent" aria-label="Desbloqueado" /> : null}
+                </div>
+                <p className="mt-1 text-xs leading-5 text-secondary">{achievement.description}</p>
+              </div>
             </div>
-          </div>
-          <div className="space-y-3">
-            {state.discoveries.length ? (
-              [...state.discoveries].reverse().map((discovery) => {
-                const item = getSpeciesById(discovery.speciesId);
-                if (!item) return null;
-                return (
-                  <div key={`${discovery.speciesId}-${discovery.discoveredAt}`} className="flex items-center gap-4 rounded-3xl bg-paper p-3">
-                    <img src={item.image} alt={item.commonName} className="h-16 w-16 rounded-2xl object-cover" />
-                    <div>
-                      <p className="font-black text-forest">{item.commonName}</p>
-                      <p className="text-sm text-forest/60">
-                        {new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" }).format(new Date(discovery.discoveredAt))}
-                      </p>
-                    </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-3 flex items-center gap-2">
+          <CalendarDays size={19} className="text-accent" aria-hidden="true" />
+          <h2 className="text-lg font-bold text-primary">Descubrimientos recientes</h2>
+        </div>
+        <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
+          {state.discoveries.length ? (
+            [...state.discoveries].reverse().map((discovery) => {
+              const item = getSpeciesById(discovery.speciesId);
+              if (!item) return null;
+              return (
+                <div key={discovery.id} className="flex items-center gap-3 p-3">
+                  <AnimalImage src={discovery.photo || item.image} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-primary">{item.commonName}</p>
+                    {discovery.variantId ? <p className="truncate text-xs text-accent">{item.variants?.find((variant) => variant.id === discovery.variantId)?.name}</p> : null}
+                    <p className="text-xs text-secondary">
+                      {new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" }).format(new Date(discovery.discoveredAt))}
+                    </p>
                   </div>
-                );
-              })
-            ) : (
-              <p className="rounded-3xl bg-paper p-5 text-forest/65">Aún no hay descubrimientos registrados.</p>
-            )}
-          </div>
+                </div>
+              );
+            })
+          ) : (
+            <p className="p-5 text-sm text-secondary">Aún no hay descubrimientos registrados.</p>
+          )}
         </div>
       </section>
     </div>
@@ -99,9 +114,9 @@ export function ProfilePage({ state }: ProfilePageProps) {
 
 function ProfileStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-3xl bg-paper p-4">
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-canopy">{label}</p>
-      <p className="mt-1 text-2xl font-black text-forest">{value}</p>
+    <div className="min-w-0 rounded-lg border border-line bg-card p-3">
+      <p className="truncate text-[11px] font-medium text-secondary">{label}</p>
+      <p className="mt-2 truncate text-base font-bold text-primary">{value}</p>
     </div>
   );
 }

@@ -1,56 +1,46 @@
 import { LockKeyhole, Sparkles } from "lucide-react";
 import type { Discovery, Species } from "../types";
+import { AnimalImage } from "./AnimalImage";
 
 type SpeciesCardProps = {
   species: Species;
   discovery?: Discovery;
+  observationCount?: number;
   onSelect: (species: Species) => void;
 };
 
-export function SpeciesCard({ species, discovery, onSelect }: SpeciesCardProps) {
+export function SpeciesCard({ species, discovery, observationCount = 0, onSelect }: SpeciesCardProps) {
   const isDiscovered = Boolean(discovery);
 
   return (
     <button
       type="button"
-      onClick={() => isDiscovered && onSelect(species)}
-      className={`group overflow-hidden rounded-3xl border text-left shadow-sm transition duration-300 ${
-        isDiscovered
-          ? "border-forest/10 bg-white hover:-translate-y-1 hover:shadow-lift"
-          : "border-dashed border-forest/20 bg-white/45"
-      }`}
+      disabled={!isDiscovered}
+      onClick={() => onSelect(species)}
+      className="flex min-h-28 w-full overflow-hidden rounded-lg border border-line bg-card text-left shadow-panel transition enabled:active:scale-[.99] disabled:cursor-default"
     >
-      <div className="relative aspect-[4/3] overflow-hidden bg-moss/30">
+      <div className="relative w-28 shrink-0 bg-soft">
         {isDiscovered ? (
-          <img
-            src={species.image}
-            alt={species.commonName}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-          />
+          <AnimalImage src={discovery?.photo || species.image} alt="" className="h-full w-full object-cover" />
         ) : (
-          <div className="grid h-full place-items-center bg-[radial-gradient(circle_at_center,_rgba(67,104,80,.25),_rgba(248,250,245,.9))] text-forest/45">
-            <LockKeyhole size={42} aria-hidden="true" />
+          <div className="grid h-full w-full place-items-center text-secondary">
+            <LockKeyhole size={26} aria-hidden="true" />
           </div>
         )}
-        <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-bold text-forest shadow-sm">
-          {species.category}
-        </span>
-        {species.rarity === "especial" ? (
-          <span className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-gold text-forest shadow-sm">
-            <Sparkles size={18} aria-hidden="true" />
-          </span>
-        ) : null}
       </div>
-      <div className="space-y-2 p-4">
-        <div>
-          <h3 className="text-base font-bold text-forest">{isDiscovered ? species.commonName : "Especie pendiente"}</h3>
-          <p className="text-sm italic text-forest/55">{isDiscovered ? species.scientificName : "Descúbrela para ver su ficha"}</p>
+      <div className="min-w-0 flex-1 p-3">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-bold text-accent-secondary">{species.category}</p>
+          {species.rarity === "especial" && isDiscovered ? <Sparkles size={16} className="shrink-0 text-gold" aria-label="Especie especial" /> : null}
         </div>
-        <p className="text-sm text-forest/65">
-          {isDiscovered && discovery
-            ? `Descubierta ${new Intl.DateTimeFormat("es", { day: "2-digit", month: "short" }).format(new Date(discovery.discoveredAt))}`
-            : "Progreso bloqueado"}
-        </p>
+        <h3 className="mt-1 text-base font-bold text-primary">{species.commonName}</h3>
+        <p className="truncate text-xs italic text-secondary">{isDiscovered ? species.scientificName : "Pendiente · Descubrila para abrir su ficha"}</p>
+        {discovery ? (
+          <p className="mt-2 text-xs text-secondary">
+            Registrada el {new Intl.DateTimeFormat("es", { day: "2-digit", month: "short" }).format(new Date(discovery.discoveredAt))}
+            {observationCount > 1 ? ` · ${observationCount} observaciones` : ""}
+          </p>
+        ) : null}
       </div>
     </button>
   );

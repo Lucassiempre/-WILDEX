@@ -7,7 +7,17 @@
       name="description"
       content="WILDEX, prototipo interactivo para identificar, descubrir y coleccionar especies reales."
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="%BASE_URL%images/wildex-icon.png" />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("wildex-theme");
+        document.documentElement.dataset.theme = savedTheme === "light" || savedTheme === "dark"
+          ? savedTheme
+          : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      } catch {
+        document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+    </script>
     <title>WILDEX</title>
   </head>
   <body>

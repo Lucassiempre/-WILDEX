@@ -2,11 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-base: 246 248 242;
+  --color-surface: 255 255 255;
+  --color-card: 255 255 255;
+  --color-soft: 228 237 223;
+  --color-primary: 23 43 34;
+  --color-secondary: 101 118 107;
+  --color-line: 220 229 218;
+  --color-accent: 36 76 56;
+  --color-accent-secondary: 67 104 80;
+  --color-on-accent: 255 255 255;
+  --color-gold: 171 129 55;
+  --color-danger: 164 72 50;
+  --color-phone-surround: 29 54 41;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-base: 8 22 16;
+  --color-surface: 16 36 27;
+  --color-card: 23 49 38;
+  --color-soft: 30 61 45;
+  --color-primary: 245 244 234;
+  --color-secondary: 167 185 170;
+  --color-line: 41 69 55;
+  --color-accent: 165 214 109;
+  --color-accent-secondary: 117 184 138;
+  --color-on-accent: 8 22 16;
+  --color-gold: 221 186 108;
+  --color-danger: 238 152 125;
+  --color-phone-surround: 4 14 9;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --color-base: 8 22 16;
+    --color-surface: 16 36 27;
+    --color-card: 23 49 38;
+    --color-soft: 30 61 45;
+    --color-primary: 245 244 234;
+    --color-secondary: 167 185 170;
+    --color-line: 41 69 55;
+    --color-accent: 165 214 109;
+    --color-accent-secondary: 117 184 138;
+    --color-on-accent: 8 22 16;
+    --color-gold: 221 186 108;
+    --color-danger: 238 152 125;
+    --color-phone-surround: 4 14 9;
+  }
+}
+
 :root {
-  color: #1c2420;
-  background: #12372a;
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -34,19 +85,21 @@ input {
   font: inherit;
 }
 
-button:focus-visible,
-select:focus-visible,
-a:focus-visible {
-  outline: 3px solid rgba(216, 169, 66, 0.85);
-  outline-offset: 3px;
-}
+button, label, select { -webkit-tap-highlight-color: transparent; }
 
-img {
-  background-color: rgba(173, 188, 159, 0.25);
+button:focus-visible, select:focus-visible, input:focus-visible,
+a:focus-visible, label:focus-within {
+  outline: 2px solid rgb(var(--color-gold));
+  outline-offset: 2px;
 }
 
 ::selection {
-  background: rgba(216, 169, 66, 0.45);
+  background: rgb(var(--color-gold) / 0.35);
+}
+
+.phone-surround { background-color: rgb(var(--color-phone-surround)); }
+.topographic {
+  background-image: repeating-radial-gradient(ellipse at 92% 10%, transparent 0 17px, rgb(165 214 109 / 0.045) 18px 19px, transparent 20px 32px);
 }
 
 .mobile-scroll {
@@ -56,4 +109,8 @@ img {
 .mobile-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
