@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="WILDEX, prototipo interactivo para identificar, descubrir y coleccionar especies reales."
+    />
+    <link rel="icon" type="image/png" href="./images/wildex-icon.png" />
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("wildex-theme");
+        document.documentElement.dataset.theme = savedTheme === "light" || savedTheme === "dark"
+          ? savedTheme
+          : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      } catch {
+        document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+    </script>
+    <title>WILDEX</title>
+    <script type="module" crossorigin src="./assets/index-D8pwkBKT.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C8VZv4Sz.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
