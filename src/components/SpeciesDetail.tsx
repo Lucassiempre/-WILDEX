@@ -1,16 +1,20 @@
-import { ExternalLink, Leaf, ShieldCheck, Utensils, X } from "lucide-react";
+import { Check, ExternalLink, Images, Leaf, ShieldCheck, Utensils, X } from "lucide-react";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import type { Discovery, Species } from "../types";
 import { AnimalImage } from "./AnimalImage";
+import { ObservationImage } from "./ObservationImage";
+import { ProgressBar } from "./ProgressBar";
+import { discoveredVariantIdsForSpecies } from "../utils/gamification";
 
 type SpeciesDetailProps = {
   species: Species;
   discoveries: Discovery[];
   onClose: () => void;
+  onOpenAlbum?: (speciesId: string) => void;
 };
 
-export function SpeciesDetail({ species, discoveries, onClose }: SpeciesDetailProps) {
+export function SpeciesDetail({ species, discoveries, onClose, onOpenAlbum }: SpeciesDetailProps) {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -21,6 +25,9 @@ export function SpeciesDetail({ species, discoveries, onClose }: SpeciesDetailPr
 
   const phoneRoot = document.getElementById("phone-root");
   if (!phoneRoot) return null;
+  const discoveredVariantIds = new Set([...discoveredVariantIdsForSpecies(discoveries, species.id)]
+    .filter((id) => species.variants?.some((item) => item.id === id)));
+  const photographed = discoveries.some((item) => Boolean(item.photo || item.photoRef || item.remotePhoto));
 
   return createPortal(
     <div className="absolute inset-0 z-50 flex items-end bg-brand-deep/70" role="presentation" onClick={onClose}>
@@ -62,10 +69,22 @@ export function SpeciesDetail({ species, discoveries, onClose }: SpeciesDetailPr
             <p className="text-xs font-bold uppercase text-accent-secondary">¿Dónde podrías encontrarlo?</p>
             <p className="mt-1 text-sm leading-6 text-primary">{species.whereToFind || species.habitat}</p>
           </div>
-          {species.variants ? <div>
+          {species.variants ? <div className="rounded-lg border border-line bg-surface p-4">
             <p className="text-xs font-bold uppercase text-accent-secondary">Razas y variantes de esta especie</p>
-            <p className="mt-2 text-sm leading-6 text-secondary">{species.variants.map((item) => item.name).join(" · ")}</p>
-            {discoveries.length ? <p className="mt-2 text-sm font-medium text-primary">En tu bitácora: {[...new Set(discoveries.map((item) => species.variants?.find((variant) => variant.id === item.variantId)?.name || "Sin especificar"))].join(" · ")}</p> : null}
+            <div className="mt-3 flex items-center justify-between gap-3 text-sm"><strong className="text-primary">{discoveredVariantIds.size} de {species.variants.length}</strong><span className="text-secondary">variantes descubiertas</span></div>
+            <div className="mt-2"><ProgressBar value={100 * discoveredVariantIds.size / species.variants.length} /></div>
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm font-semibold text-accent">Ver {species.variants.length} variantes</summary>
+              <div className="mt-3 space-y-2">
+              {species.variants.map((item) => {
+                const discovered = discoveredVariantIds.has(item.id);
+                return <div key={item.id} className={`rounded-md px-3 py-2 ${discovered ? "bg-accent/15" : "bg-soft"}`}>
+                  <p className={`flex items-center gap-1.5 text-xs font-bold ${discovered ? "text-accent" : "text-primary"}`}>{discovered ? <Check size={13} aria-hidden="true" /> : null}{item.name}<span className="ml-auto font-medium text-secondary">{({ raza: "Raza", tipo: "Tipo", color: "Color", patron: "Patrón" })[item.kind]}</span></p>
+                  {item.description ? <p className="mt-1 text-xs leading-5 text-secondary">{item.description}</p> : null}
+                </div>;
+              })}
+              </div>
+            </details>
           </div> : null}
           <div>
             <p className="text-xs font-bold uppercase text-accent-secondary">Curiosidad</p>
@@ -75,7 +94,7 @@ export function SpeciesDetail({ species, discoveries, onClose }: SpeciesDetailPr
             <p className="text-xs font-bold uppercase text-accent-secondary">Tus observaciones · {discoveries.length}</p>
             <div className="mt-2 space-y-2">
               {[...discoveries].reverse().map((item) => <div key={item.id} className="flex items-center gap-3 rounded-lg bg-surface p-2">
-                <AnimalImage src={item.photo || species.image} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
+                <ObservationImage discovery={item} fallback={species.image} alt="" className="h-14 w-14 shrink-0 rounded-md object-cover" />
                 <div className="min-w-0">
                   <p className="text-xs font-semibold text-primary">{new Intl.DateTimeFormat("es", { dateStyle: "medium" }).format(new Date(item.discoveredAt))}</p>
                   {item.variantId ? <p className="truncate text-xs text-accent-secondary">{species.variants?.find((variant) => variant.id === item.variantId)?.name}</p> : null}
@@ -84,8 +103,9 @@ export function SpeciesDetail({ species, discoveries, onClose }: SpeciesDetailPr
               </div>)}
             </div>
           </div> : null}
+          {onOpenAlbum && photographed ? <button type="button" onClick={() => onOpenAlbum(species.id)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 text-sm font-bold text-on-accent"><Images size={17} aria-hidden="true" /> Ver álbum de esta especie</button> : null}
           <a href={species.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-accent px-4 text-sm font-bold text-on-accent">
-            Fuente visual <ExternalLink size={16} aria-hidden="true" />
+            Fuente visual y licencia <ExternalLink size={16} aria-hidden="true" />
           </a>
           {species.scienceSourceUrl ? <a href={species.scienceSourceUrl} target="_blank" rel="noreferrer" className="ml-2 inline-flex min-h-11 items-center gap-2 rounded-lg border border-line px-4 text-sm font-bold text-primary">Referencia <ExternalLink size={16} aria-hidden="true" /></a> : null}
         </div>

@@ -1,0 +1,30 @@
+node_modules/
+dist/
+.vite/
+coverage/
+*.local
+*.log
+*.tsbuildinfo
+*.zip
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Android / Capacitor generated build state
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+
+# Android release signing credentials
+keystore.properties
+*.jks
+*.keystore
+
+.idea/
+
+supabase/.temp/

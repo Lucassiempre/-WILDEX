@@ -1,0 +1,17 @@
+-- Reconciliation marker for the partial/manual installation of migration 006.
+--
+-- The remote definitions exported by 07_reconcile_initial_sync.sql were
+-- compared with the current 202609280006_initial_sync.sql. Every reported
+-- difference was caused by diagnostic normalization:
+--
+-- * function bodies differed only because the diagnostic retained one
+--   normalized leading and trailing space before calculating MD5;
+-- * the observation photo constraint was already equivalent and PostgreSQL
+--   deparsed casts as user_id::text/id::text instead of (user_id)::text;
+-- * the featured-badge index was already equivalent and PostgreSQL quoted
+--   the reserved column name as "position".
+--
+-- No persistent database object or row needs reconciliation. This migration
+-- is intentionally empty so it can record the reviewed state without
+-- replacing functions, rebuilding indexes, or validating constraints against
+-- existing observations unnecessarily.

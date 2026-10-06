@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Página oficial de MrLabs para eliminar permanentemente una cuenta Wildex y sus datos sincronizados." />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src %VITE_SUPABASE_URL%; base-uri 'self'; form-action 'none'" />
+    <link rel="icon" type="image/png" href="%BASE_URL%images/wildex-icon.png" />
+    <title>Eliminación de cuenta Wildex | MrLabs</title>
+  </head>
+  <body>
+    <main class="page-shell">
+      <article class="delete-panel" aria-labelledby="page-title">
+        <header class="brand-header">
+          <img src="%BASE_URL%images/wildex-icon.png" width="64" height="64" alt="" />
+          <div>
+            <p class="brand-name">WILDEX</p>
+            <p class="developer">Desarrollado por MrLabs</p>
+          </div>
+        </header>
+
+        <section class="intro">
+          <p class="eyebrow">Gestión de datos</p>
+          <h1 id="page-title">Eliminación de cuenta Wildex</h1>
+          <p>Desde esta página podés eliminar permanentemente tu cuenta y todos los datos sincronizados asociados.</p>
+        </section>
+
+        <section class="data-section" aria-labelledby="deleted-data-title">
+          <h2 id="deleted-data-title">Qué se eliminará</h2>
+          <ul>
+            <li>Tu cuenta y perfil Wildex.</li>
+            <li>Observaciones, fotografías sincronizadas y descubrimientos.</li>
+            <li>Progreso, XP, desafíos, reclamos e insignias.</li>
+            <li>Datos privados de importación y sincronización asociados a la cuenta.</li>
+          </ul>
+          <p class="permanent-warning"><strong>Esta acción es permanente y no se puede deshacer.</strong></p>
+          <p class="local-note">Los datos que existan exclusivamente de forma local en otro dispositivo no pueden eliminarse remotamente desde esta página. Podés eliminarlos borrando los datos de la aplicación o desinstalándola en ese dispositivo.</p>
+        </section>
+
+        <section id="auth-section" class="action-section" aria-labelledby="start-title">
+          <h2 id="start-title">Iniciar el proceso</h2>
+          <p>Ingresá con la misma cuenta de Google que utilizás en Wildex.</p>
+          <button id="google-login" class="primary-button" type="button">Continuar con Google</button>
+        </section>
+
+        <section id="confirmation-section" class="action-section" aria-labelledby="confirmation-title" hidden>
+          <h2 id="confirmation-title">Confirmar eliminación</h2>
+          <p>Cuenta autenticada:</p>
+          <p id="account-email" class="account-email"></p>
+          <button id="change-account" class="text-button" type="button">Usar otra cuenta</button>
+          <label for="confirmation-input">Escribí <strong>ELIMINAR</strong> para confirmar</label>
+          <input id="confirmation-input" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+          <button id="delete-account" class="danger-button" type="button" disabled>Eliminar cuenta y datos permanentemente</button>
+        </section>
+
+        <section id="success-section" class="success-section" aria-labelledby="success-title" hidden>
+          <h2 id="success-title">Cuenta eliminada</h2>
+          <p>Tu cuenta Wildex y sus datos sincronizados fueron eliminados permanentemente.</p>
+        </section>
+
+        <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+
+        <footer>
+          <p>Wildex · MrLabs</p>
+        </footer>
+      </article>
+    </main>
+    <script type="module" src="/src/delete-account/main.ts"></script>
+  </body>
+</html>

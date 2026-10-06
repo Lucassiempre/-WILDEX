@@ -1,20 +1,26 @@
-import { BookOpen, Search } from "lucide-react";
+import { ArrowLeft, BookOpen, Layers3, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import { SpeciesCard } from "../components/SpeciesCard";
 import { SpeciesDetail } from "../components/SpeciesDetail";
+import { ThematicCollectionCard } from "../components/ThematicCollectionCard";
 import { categories, species } from "../data/species";
-import type { Category, Discovery, ExplorationType, Species } from "../types";
+import { thematicCollections } from "../data/thematicCollections";
+import type { Category, Discovery, ExplorationType, Species, ThematicCollection } from "../types";
 import { categoryCounts, discoveredSpeciesCount } from "../utils/gamification";
+import { speciesForThematicCollection, thematicCollectionProgress } from "../utils/thematicCollections";
 
 type CollectionPageProps = {
   discoveries: Discovery[];
+  onOpenAlbum: (speciesId: string) => void;
 };
 
-export function CollectionPage({ discoveries }: CollectionPageProps) {
+export function CollectionPage({ discoveries, onOpenAlbum }: CollectionPageProps) {
   const [filter, setFilter] = useState<Category | "Todos">("Todos");
   const [environment, setEnvironment] = useState<ExplorationType | "todos">("urban");
   const [query, setQuery] = useState("");
   const [selectedSpecies, setSelectedSpecies] = useState<Species>();
+  const [section, setSection] = useState<"species" | "themes">("species");
+  const [selectedCollection, setSelectedCollection] = useState<ThematicCollection>();
   const counts = categoryCounts(discoveries);
   const normalizedQuery = query.trim().toLocaleLowerCase("es");
   const filteredSpecies = useMemo(
@@ -48,6 +54,12 @@ export function CollectionPage({ discoveries }: CollectionPageProps) {
         </details>
       </section>
 
+      <div className="grid grid-cols-2 gap-1 rounded-lg bg-soft p-1" role="group" aria-label="Vista de colección">
+        <button type="button" onClick={() => { setSection("species"); setSelectedCollection(undefined); }} aria-pressed={section === "species"} className={`min-h-11 rounded-md text-sm font-semibold ${section === "species" ? "bg-accent text-on-accent" : "text-secondary"}`}><BookOpen size={16} className="mr-2 inline" aria-hidden="true" />Especies</button>
+        <button type="button" onClick={() => setSection("themes")} aria-pressed={section === "themes"} className={`min-h-11 rounded-md text-sm font-semibold ${section === "themes" ? "bg-accent text-on-accent" : "text-secondary"}`}><Layers3 size={16} className="mr-2 inline" aria-hidden="true" />Temáticas</button>
+      </div>
+
+      {section === "species" ? <>
       <div className="grid grid-cols-4 gap-1 rounded-lg bg-soft p-1" role="group" aria-label="Filtrar por ambiente">
         {([['urban', 'Ciudad'], ['domestic', 'Hogar'], ['wild', 'Silvestre'], ['todos', 'Todos']] as const).map(([value, label]) => (
           <button key={value} type="button" onClick={() => setEnvironment(value)} aria-pressed={environment === value}
@@ -91,8 +103,24 @@ export function CollectionPage({ discoveries }: CollectionPageProps) {
           />
         ))}
       </section>
+      </> : selectedCollection ? (() => {
+        const progress = thematicCollectionProgress(selectedCollection, discoveries);
+        const collectionSpecies = speciesForThematicCollection(selectedCollection);
+        return <section className="space-y-3" aria-label={selectedCollection.title}>
+          <button type="button" onClick={() => setSelectedCollection(undefined)} className="inline-flex min-h-10 items-center gap-2 text-sm font-bold text-accent"><ArrowLeft size={17} aria-hidden="true" />Todas las temáticas</button>
+          <div className="border-l-2 border-accent pl-3">
+            <h2 className="text-xl font-bold text-primary">{selectedCollection.title}</h2>
+            <p className="mt-1 text-sm leading-5 text-secondary">{selectedCollection.description}</p>
+            <p className="mt-2 text-sm font-bold text-primary">{progress.current}/{progress.total} {selectedCollection.progressMode === "variants" ? "variantes descubiertas" : "especies descubiertas"}</p>
+          </div>
+          {collectionSpecies.map((item) => <SpeciesCard key={item.id} species={item} discovery={discoveries.filter((discovery) => discovery.speciesId === item.id).at(-1)} observationCount={discoveries.filter((discovery) => discovery.speciesId === item.id).length} onSelect={setSelectedSpecies} />)}
+        </section>;
+      })() : <section className="space-y-3" aria-label="Colecciones temáticas">
+        <div><h2 className="text-lg font-bold text-primary">Colecciones temáticas</h2><p className="mt-1 text-sm text-secondary">Una especie puede formar parte de más de una colección.</p></div>
+        {thematicCollections.map((collection) => <ThematicCollectionCard key={collection.id} collection={collection} discoveries={discoveries} onSelect={setSelectedCollection} />)}
+      </section>}
 
-      {selectedSpecies ? <SpeciesDetail species={selectedSpecies} discoveries={discoveries.filter((item) => item.speciesId === selectedSpecies.id)} onClose={() => setSelectedSpecies(undefined)} /> : null}
+      {selectedSpecies ? <SpeciesDetail species={selectedSpecies} discoveries={discoveries.filter((item) => item.speciesId === selectedSpecies.id)} onClose={() => setSelectedSpecies(undefined)} onOpenAlbum={onOpenAlbum} /> : null}
     </div>
   );
 }

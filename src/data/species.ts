@@ -1,9 +1,13 @@
 import type { Category, Species } from "../types";
 import { urbanSpecies } from "./urbanSpecies";
 import { expandedSpecies } from "./expandedSpecies";
+import { themedSpecies } from "./themedSpecies";
+import { priorityBirdSpecies } from "./priorityBirdSpecies";
 
 const commonsFile = (fileName: string) =>
   `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(fileName)}?width=900`;
+const commonsSource = (fileName: string) =>
+  `https://commons.wikimedia.org/wiki/File:${fileName.replaceAll(" ", "_")}`;
 
 export const categories: Category[] = [
   "Mamíferos",
@@ -30,7 +34,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Vive en grupos y suele pasar buena parte del día cerca del agua.",
     keywords: ["carpincho", "capybara", "hydrochoerus", "waterhog"],
     rarity: "comun",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Hydrochoerus_hydrochaeris",
+    sourceUrl: commonsSource("Hydrochoerus hydrochaeris 216288510.jpg"),
   },
   {
     id: "hornero",
@@ -45,7 +49,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Su nido de barro puede resistir lluvias intensas y se reutiliza por otras especies.",
     keywords: ["hornero", "furnarius", "rufous", "ovenbird"],
     rarity: "comun",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Furnarius_rufus",
+    sourceUrl: commonsSource("Rufous Hornero (Furnarius rufus).jpg"),
   },
   {
     id: "zorro-colorado",
@@ -60,7 +64,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Es uno de los cánidos silvestres más grandes de Sudamérica.",
     keywords: ["zorro", "culpeo", "colorado", "lycalopex", "fox"],
     rarity: "notable",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Pseudalopex_culpaeus",
+    sourceUrl: commonsSource("Lycalopex culpaeus 01.jpg"),
   },
   {
     id: "yaguarete",
@@ -75,7 +79,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Sus manchas forman rosetas, un patrón útil para identificar individuos.",
     keywords: ["yaguarete", "jaguar", "panthera", "onca"],
     rarity: "especial",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Panthera_onca",
+    sourceUrl: commonsSource("Panthera onca.jpg"),
   },
   {
     id: "condor-andino",
@@ -90,7 +94,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Planea largas distancias aprovechando corrientes térmicas.",
     keywords: ["condor", "cóndor", "vultur", "gryphus", "andean"],
     rarity: "especial",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Vultur_gryphus",
+    sourceUrl: commonsSource("Cóndor Andino.jpg"),
   },
   {
     id: "puma",
@@ -105,7 +109,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "No ruge como los grandes Panthera; emite vocalizaciones más parecidas a maullidos fuertes.",
     keywords: ["puma", "cougar", "mountain", "lion", "concolor"],
     rarity: "especial",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Puma_concolor_concolor",
+    sourceUrl: commonsSource("South American Mountain Lion Hunting Guanaco, Magallanes y Antártica Chilena, CL imported from iNaturalist photo 419995101.jpg"),
   },
   {
     id: "mariposa-monarca",
@@ -120,7 +124,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Varias generaciones participan en su ciclo migratorio anual.",
     keywords: ["monarca", "monarch", "danaus", "plexippus", "butterfly"],
     rarity: "notable",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Danaus_plexippus",
+    sourceUrl: commonsSource("Danaus plexippus (monarch butterfly) 3 (17071317368).jpg"),
   },
   {
     id: "tucan",
@@ -135,7 +139,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Su pico ayuda a regular la temperatura corporal y alcanzar frutos distantes.",
     keywords: ["tucan", "tucán", "toucan", "ramphastos", "toco"],
     rarity: "notable",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Ramphastos_toco",
+    sourceUrl: commonsSource("Toco toucan (Ramphastos toco).jpg"),
   },
   {
     id: "rana-criolla",
@@ -150,7 +154,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Puede producir nidos de espuma durante la reproducción.",
     keywords: ["rana", "criolla", "leptodactylus", "latrans", "frog"],
     rarity: "comun",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Leptodactylus_latrans",
+    sourceUrl: commonsSource("Ke - Leptodactylus latrans - 1.jpg"),
   },
   {
     id: "pinguino-magallanes",
@@ -165,7 +169,7 @@ const wildSpecies: Omit<Species, "exploration" | "explorationTypes">[] = [
     curiosity: "Excava madrigueras o usa refugios naturales para proteger sus nidos.",
     keywords: ["pinguino", "pingüino", "magallanes", "spheniscus", "penguin"],
     rarity: "notable",
-    sourceUrl: "https://commons.wikimedia.org/wiki/Category:Spheniscus_magellanicus",
+    sourceUrl: commonsSource("4 Spheniscus magellanicus.jpg"),
   },
 ];
 
@@ -185,6 +189,8 @@ const wildDistributions: Record<string, string> = {
 export const species: Species[] = [
   ...urbanSpecies,
   ...expandedSpecies,
+  ...themedSpecies,
+  ...priorityBirdSpecies,
   ...wildSpecies.map((item) => ({
     ...item,
     exploration: (["hornero", "carpincho", "rana-criolla"] as string[]).includes(item.id) ? "ambas" as const : "silvestre" as const,

@@ -1,16 +1,18 @@
 import { ArrowRight, Camera, Compass, Leaf, Trophy } from "lucide-react";
-import { AnimalImage } from "../components/AnimalImage";
+import { ObservationImage } from "../components/ObservationImage";
 import { ProgressBar } from "../components/ProgressBar";
 import { getSpeciesById, species } from "../data/species";
 import type { ExplorerState, View } from "../types";
-import { categoryCounts, challengesForState, discoveredSpeciesCount, discoveredSpeciesIds, levelFromXp } from "../utils/gamification";
+import { evaluateFixedChallenges } from "../services/challengeService";
+import { categoryCounts, discoveredSpeciesCount, discoveredSpeciesIds, levelFromXp } from "../utils/gamification";
 
 type HomePageProps = {
   state: ExplorerState;
+  displayName: string;
   onNavigate: (view: View) => void;
 };
 
-export function HomePage({ state, onNavigate }: HomePageProps) {
+export function HomePage({ state, displayName, onNavigate }: HomePageProps) {
   const level = levelFromXp(state.xp);
   const lastDiscovery = state.discoveries.at(-1);
   const lastSpecies = lastDiscovery ? getSpeciesById(lastDiscovery.speciesId) : undefined;
@@ -19,13 +21,15 @@ export function HomePage({ state, onNavigate }: HomePageProps) {
   const topCategory = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
   const collectionProgress = Math.round((discoveredCount / species.length) * 100);
   const urbanCount = [...discoveredSpeciesIds(state.discoveries)].filter((id) => getSpeciesById(id)?.explorationTypes.includes("urban")).length;
-  const featuredChallenge = challengesForState(state).find((item) => !item.completed) || challengesForState(state)[0];
+  const fixedChallenges = evaluateFixedChallenges(state);
+  const featuredChallenge = fixedChallenges.find((item) => !item.completed) ?? fixedChallenges.find((item) => !item.claimed) ?? fixedChallenges[0];
+  const featuredObjective = featuredChallenge.objectives[0];
 
   return (
     <div className="space-y-6 pb-24">
       <section className="topographic overflow-hidden rounded-lg bg-brand-deep p-5 text-brand-cream">
         <p className="text-xs font-bold uppercase text-brand-leaf">Tu próxima expedición</p>
-        <h1 className="mt-3 text-3xl font-bold leading-tight">Hola, Martina.</h1>
+        <h1 className="mt-3 text-3xl font-bold leading-tight">Hola, {displayName}.</h1>
         <p className="mt-2 max-w-[290px] text-sm leading-6 text-brand-cream/75">
           Hay nuevas especies esperando en tu ruta.
         </p>
@@ -40,7 +44,7 @@ export function HomePage({ state, onNavigate }: HomePageProps) {
         </button>
         {lastSpecies ? (
           <div className="mt-5 flex items-center gap-3 border-t border-brand-cream/15 pt-4">
-            <AnimalImage src={lastDiscovery?.photo || lastSpecies.image} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
+            <ObservationImage discovery={lastDiscovery!} fallback={lastSpecies.image} alt="" className="h-14 w-14 shrink-0 rounded-lg object-cover" />
             <div className="min-w-0">
               <p className="text-xs font-medium text-brand-cream/65">Último encuentro</p>
               <p className="truncate text-sm font-bold text-brand-cream">{lastSpecies.commonName}</p>
@@ -83,9 +87,9 @@ export function HomePage({ state, onNavigate }: HomePageProps) {
       <section>
         <h2 className="mb-3 text-lg font-bold text-primary">Desafío destacado</h2>
         <div className="rounded-lg border border-line bg-surface p-4">
-          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-primary">{featuredChallenge.title}</p><p className="mt-1 text-xs text-secondary">{featuredChallenge.description}</p></div><span className="shrink-0 text-sm font-bold text-accent">{featuredChallenge.current}/{featuredChallenge.target}</span></div>
-          <div className="mt-3"><ProgressBar value={featuredChallenge.current / featuredChallenge.target * 100} /></div>
-          <p className="mt-2 text-xs text-secondary">{featuredChallenge.completed ? "Completado" : `Recompensa: ${featuredChallenge.reward}`}</p>
+          <div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-primary">{featuredChallenge.title}</p><p className="mt-1 text-xs text-secondary">{featuredChallenge.description}</p></div><span className="shrink-0 text-sm font-bold text-accent">{featuredObjective.current}/{featuredObjective.target}</span></div>
+          <div className="mt-3"><ProgressBar value={featuredObjective.current / featuredObjective.target * 100} /></div>
+          <p className="mt-2 text-xs text-secondary">{featuredChallenge.claimed ? "Recompensa reclamada" : featuredChallenge.completed ? "Recompensa disponible en tu perfil" : `Recompensa: +${featuredChallenge.xpReward} XP`}</p>
         </div>
       </section>
 

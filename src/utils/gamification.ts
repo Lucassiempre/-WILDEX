@@ -13,12 +13,15 @@ export const levelFromXp = (xp: number) => {
 };
 
 export const discoveredSpeciesIds = (discoveries: Discovery[]) =>
-  new Set(discoveries.map((discovery) => discovery.speciesId));
+  new Set(discoveries.map((discovery) => discovery.speciesId).filter((id) => Boolean(getSpeciesById(id))));
 
 export const discoveredSpeciesCount = (discoveries: Discovery[]) => discoveredSpeciesIds(discoveries).size;
 
 export const discoveredVariantCount = (discoveries: Discovery[]) =>
   new Set(discoveries.filter((item) => item.variantId).map((item) => `${item.speciesId}:${item.variantId}`)).size;
+
+export const discoveredVariantIdsForSpecies = (discoveries: Discovery[], speciesId: string) =>
+  new Set(discoveries.filter((item) => item.speciesId === speciesId && item.variantId).map((item) => item.variantId!));
 
 export const categoryCounts = (discoveries: Discovery[]) =>
   categories.reduce<Record<string, number>>((accumulator, category) => {
@@ -85,16 +88,4 @@ export const achievementsForState = (state: ExplorerState) => {
       unlocked: discoveredVariantCount(state.discoveries) >= 1,
     },
   ];
-};
-
-export const challengesForState = (state: ExplorerState) => {
-  const ids = [...discoveredSpeciesIds(state.discoveries)];
-  const count = (predicate: (id: string) => boolean) => ids.filter(predicate).length;
-  return [
-    { title: "Tu primera ave", description: "Descubrí una especie de ave.", current: count((id) => getSpeciesById(id)?.category === "Aves"), target: 1, reward: "Logro Observador de aves" },
-    { title: "Exploración urbana", description: "Registrá tres especies urbanas.", current: count((id) => Boolean(getSpeciesById(id)?.explorationTypes.includes("urban"))), target: 3, reward: "Logro Explorador urbano" },
-    { title: "Pequeños habitantes", description: "Encontrá un insecto.", current: count((id) => getSpeciesById(id)?.category === "Insectos"), target: 1, reward: "Logro Observador de insectos" },
-    { title: "Cinco mamíferos", description: "Descubrí cinco especies de mamíferos.", current: count((id) => getSpeciesById(id)?.category === "Mamíferos"), target: 5, reward: "Logro Explorador de mamíferos" },
-    { title: "Naturaleza abierta", description: "Registrá una especie silvestre.", current: count((id) => Boolean(getSpeciesById(id)?.explorationTypes.includes("wild"))), target: 1, reward: "Logro Explorador silvestre" },
-  ].map((item) => ({ ...item, current: Math.min(item.current, item.target), completed: item.current >= item.target }));
 };

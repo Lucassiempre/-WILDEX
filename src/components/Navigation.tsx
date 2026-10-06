@@ -1,10 +1,11 @@
-import { Camera, LayoutDashboard, PawPrint, UserRound } from "lucide-react";
+import { Camera, Images, LayoutDashboard, PawPrint, UserRound } from "lucide-react";
 import type { View } from "../types";
 
 const items: Array<{ view: View; label: string; icon: typeof LayoutDashboard }> = [
   { view: "inicio", label: "Inicio", icon: LayoutDashboard },
   { view: "descubrir", label: "Descubrir", icon: Camera },
   { view: "coleccion", label: "Colección", icon: PawPrint },
+  { view: "album", label: "Álbum", icon: Images },
   { view: "perfil", label: "Perfil", icon: UserRound },
 ];
 
@@ -16,7 +17,7 @@ type NavigationProps = {
 export function Navigation({ currentView, onNavigate }: NavigationProps) {
   return (
     <nav
-      className="absolute inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-line bg-surface px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-panel"
+      className="absolute inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-surface px-1 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 shadow-panel"
       aria-label="Principal"
     >
       {items.map((item) => {
@@ -27,13 +28,13 @@ export function Navigation({ currentView, onNavigate }: NavigationProps) {
             key={item.view}
             type="button"
             onClick={() => onNavigate(item.view)}
-            className={`grid min-h-14 place-items-center rounded-lg text-[11px] font-semibold transition ${
+            className={`grid min-h-14 min-w-0 place-items-center rounded-lg px-0.5 text-[10px] font-semibold transition ${
               active ? "bg-soft text-accent" : "text-secondary active:bg-soft"
             }`}
             aria-current={active ? "page" : undefined}
           >
-            <Icon size={20} aria-hidden="true" />
-            <span>{item.label}</span>
+            <Icon size={19} aria-hidden="true" />
+            <span className="max-w-full truncate">{item.label}</span>
           </button>
         );
       })}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">WILDEX</string>
+    <string name="title_activity_main">WILDEX</string>
+    <string name="package_name">com.mrlabs.wildex</string>
+    <string name="custom_url_scheme">com.mrlabs.wildex</string>
+</resources>

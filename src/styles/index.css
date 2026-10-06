@@ -70,6 +70,7 @@
 
 html {
   scroll-behavior: smooth;
+  overscroll-behavior: none;
 }
 
 body {
@@ -77,17 +78,21 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior: none;
 }
+
+html, body, #root { height: 100%; }
 
 button,
 select,
-input {
+input,
+textarea {
   font: inherit;
 }
 
-button, label, select { -webkit-tap-highlight-color: transparent; }
+button, label, select, textarea { -webkit-tap-highlight-color: transparent; }
 
-button:focus-visible, select:focus-visible, input:focus-visible,
+button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible,
 a:focus-visible, label:focus-within {
   outline: 2px solid rgb(var(--color-gold));
   outline-offset: 2px;
@@ -109,6 +114,26 @@ a:focus-visible, label:focus-within {
 .mobile-scroll::-webkit-scrollbar {
   width: 0;
   height: 0;
+}
+
+.profile-editor {
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+}
+
+.native-app .app-header {
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.native-app #phone-root {
+  height: 100dvh;
+}
+
+.keyboard-open nav[aria-label="Principal"] {
+  display: none;
+}
+
+.keyboard-open .profile-editor {
+  padding-bottom: 12px;
 }
 
 @media (prefers-reduced-motion: reduce) {

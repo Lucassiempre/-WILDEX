@@ -1,6 +1,6 @@
 import { LockKeyhole, Sparkles } from "lucide-react";
 import type { Discovery, Species } from "../types";
-import { AnimalImage } from "./AnimalImage";
+import { ObservationImage } from "./ObservationImage";
 
 type SpeciesCardProps = {
   species: Species;
@@ -20,8 +20,8 @@ export function SpeciesCard({ species, discovery, observationCount = 0, onSelect
       className="flex min-h-28 w-full overflow-hidden rounded-lg border border-line bg-card text-left shadow-panel transition enabled:active:scale-[.99] disabled:cursor-default"
     >
       <div className="relative w-28 shrink-0 bg-soft">
-        {isDiscovered ? (
-          <AnimalImage src={discovery?.photo || species.image} alt="" className="h-full w-full object-cover" />
+        {discovery ? (
+          <ObservationImage discovery={discovery} fallback={species.image} alt="" className="h-full w-full object-cover" />
         ) : (
           <div className="grid h-full w-full place-items-center text-secondary">
             <LockKeyhole size={26} aria-hidden="true" />
