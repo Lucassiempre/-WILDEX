@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { getSpeciesById, species } from "../data/species";
 import { SpeciesDetail } from "../components/SpeciesDetail";
 import { AnimalImage } from "../components/AnimalImage";
+import { SpeciesAutocomplete, VariantAutocomplete } from "../components/CatalogAutocomplete";
 import { preparePhoto } from "../services/photoService";
 import { getNativePhoto, isNativeApp, type NativeCapturedPhoto, type NativePhotoSource } from "../services/nativeCameraService";
 import {
@@ -13,7 +14,8 @@ import {
   saveNativeCaptureDraft,
 } from "../services/nativeCaptureSession";
 import { logNativeCapture } from "../services/nativeCaptureDiagnostics";
-import { identifySpecies } from "../services/recognitionService";
+import { canSaveObservation, canVerifySelectedSpecies, confirmedSpeciesIdForAnalysis, identifySpecies, nextVerificationStatus, type VerificationStatus } from "../services/recognitionService";
+import { createRecognitionRequestGuard } from "../services/visualRecognitionService";
 import { isCaptureApplied } from "../services/appStateCoordinator";
 import type { AnalysisResult, DiscoveryInput } from "../types";
 
@@ -39,11 +41,15 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
   const [result, setResult] = useState<AnalysisResult>();
   const [confirmedSpeciesId, setConfirmedSpeciesId] = useState("");
   const [variantId, setVariantId] = useState("");
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("not_verified");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const objectUrlRef = useRef<string | null>(null);
   const restoredTokenRef = useRef<string | undefined>(undefined);
   const consumedRestoredTokenRef = useRef<string | undefined>(undefined);
+  const recognitionGuardRef = useRef(createRecognitionRequestGuard());
+  const savedPhotoRef = useRef(savedPhoto);
+  savedPhotoRef.current = savedPhoto;
 
   useEffect(() => {
     if (cameraActive && videoRef.current && streamRef.current) {
@@ -54,7 +60,14 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
   useEffect(() => () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    recognitionGuardRef.current.cancel();
   }, []);
+
+  useEffect(() => {
+    recognitionGuardRef.current.cancel();
+    setAnalyzing(false);
+    setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
+  }, [savedPhoto]);
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -78,6 +91,7 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
     setResult(undefined);
     setConfirmedSpeciesId("");
     setVariantId("");
+    setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
     logNativeCapture("photo-visible-in-discover", { fileName: nativePhoto.fileName, bytes: nativePhoto.dataUrl.length });
   };
 
@@ -115,6 +129,7 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
       setResult(undefined);
       setConfirmedSpeciesId("");
       setVariantId("");
+      setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
       streamRef.current = stream;
       setCameraActive(true);
     } catch {
@@ -172,6 +187,7 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
     setResult(undefined);
     setConfirmedSpeciesId("");
     setVariantId("");
+    setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
   };
 
   const handleFile = async (file?: File) => {
@@ -184,6 +200,7 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
     setResult(undefined);
     setConfirmedSpeciesId("");
     setVariantId("");
+    setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
     setPreparingPhoto(true);
     try {
       const prepared = await preparePhoto(file);
@@ -207,27 +224,53 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
     setResult(undefined);
     setConfirmedSpeciesId("");
     setVariantId("");
+    setVerificationStatus(nextVerificationStatus({ type: "photo_changed" }));
   };
 
   const identify = async () => {
-    if (!preview) return;
+    if (!savedPhoto || !demoSpeciesId || analyzing) return;
+    const photoAtRequest = savedPhoto;
+    const request = recognitionGuardRef.current.begin(photoAtRequest);
     setAnalyzing(true);
     setResult(undefined);
+    setVerificationStatus(nextVerificationStatus({ type: "verification_started" }));
     try {
-      const analysis = await identifySpecies({ fileName, demoSpeciesId });
+      const analysis = await identifySpecies({ fileName, demoSpeciesId, imageDataUrl: photoAtRequest, signal: request.signal });
+      if (!recognitionGuardRef.current.isCurrent(request.token, photoAtRequest) || savedPhotoRef.current !== photoAtRequest) return;
       setResult(analysis);
-      setConfirmedSpeciesId(analysis.speciesId ?? "");
+      setConfirmedSpeciesId(confirmedSpeciesIdForAnalysis(analysis, demoSpeciesId));
       setVariantId(analysis.variantId ?? "");
-    } catch {
-      setResult({ status: "connection-error", mode: "demo", identificationMethod: "demo-manual", analyzedAt: new Date().toISOString(), message: "El servicio de demostración no respondió. Intentá nuevamente." });
+      setVerificationStatus(nextVerificationStatus({ type: "analysis_received", analysis }));
+    } catch (error) {
+      if (!request.signal.aborted && recognitionGuardRef.current.isCurrent(request.token, photoAtRequest)) {
+        const unavailable: AnalysisResult = { status: "connection-error", mode: "demo", identificationMethod: "demo-manual", analyzedAt: new Date().toISOString(), message: "No se pudo completar el reconocimiento. La foto sigue disponible y podés elegir la especie manualmente." };
+        setResult(unavailable);
+        setConfirmedSpeciesId(demoSpeciesId);
+        setVerificationStatus(nextVerificationStatus({ type: "analysis_received", analysis: unavailable }));
+      }
     } finally {
-      setAnalyzing(false);
+      if (recognitionGuardRef.current.isCurrent(request.token, photoAtRequest)) {
+        recognitionGuardRef.current.finish(request.token);
+        setAnalyzing(false);
+      }
     }
   };
 
   const suggestedSpecies = result?.speciesId ? getSpeciesById(result.speciesId) : undefined;
   const confirmedSpecies = confirmedSpeciesId ? getSpeciesById(confirmedSpeciesId) : undefined;
   const suggestedVariant = suggestedSpecies?.variants?.find((item) => item.id === result?.variantId);
+  const hasUnresolvedSpeciesMismatch = verificationStatus === "verified_mismatch";
+  const savingAllowed = canSaveObservation({ hasPhoto: Boolean(savedPhoto), selectedSpeciesId: demoSpeciesId, verificationStatus });
+  const canVerifySpecies = canVerifySelectedSpecies({ hasPhoto: Boolean(preview && savedPhoto), selectedSpeciesId: demoSpeciesId, busy: analyzing || preparingPhoto });
+
+  const changeSelectedSpecies = (id: string) => {
+    setDemoSpeciesId(id);
+    setConfirmedSpeciesId(id);
+    setVariantId("");
+    setShowDetail(false);
+    setResult(undefined);
+    setVerificationStatus(nextVerificationStatus({ type: "species_changed" }));
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -240,8 +283,8 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
       <section className="flex gap-3 rounded-lg border border-gold/35 bg-gold/10 p-4" role="status">
         <ShieldAlert size={20} className="mt-0.5 shrink-0 text-gold" aria-hidden="true" />
         <div>
-          <p className="text-sm font-bold text-primary">Reconocimiento automático no disponible</p>
-          <p className="mt-1 text-xs leading-5 text-secondary">Esta versión pública funciona en modo demostración. Wildex no analiza el contenido de la fotografía: la identificación final y la variante se seleccionan manualmente.</p>
+          <p className="text-sm font-bold text-primary">Identificación asistida</p>
+          <p className="mt-1 text-xs leading-5 text-secondary">El reconocimiento visual ofrece una sugerencia y requiere una cuenta conectada. La identificación final y cualquier raza o variante siempre se confirman manualmente.</p>
         </div>
       </section>
 
@@ -268,7 +311,7 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
               <div className="absolute inset-x-0 h-20 animate-scan bg-gradient-to-b from-transparent via-brand-leaf/30 to-transparent" />
               <div className="relative text-center">
                 <Loader2 size={30} className="mx-auto animate-spin text-brand-leaf" aria-hidden="true" />
-                <p className="mt-3 text-sm font-semibold">Analizando imagen demo...</p>
+                <p className="mt-3 text-sm font-semibold">Analizando imagen...</p>
               </div>
             </div>
           ) : null}
@@ -319,44 +362,59 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
 
       <section className="rounded-lg border border-line bg-surface p-4">
         <div className="flex items-center justify-between">
-          <label htmlFor="demoSpecies" className="text-sm font-bold text-primary">Especie de prueba</label>
-          <span className="rounded bg-soft px-2 py-1 text-[11px] font-bold text-accent">DEMO</span>
+          <label htmlFor="demoSpecies" className="text-sm font-bold text-primary">Seleccioná la especie</label>
+          <span className="rounded bg-soft px-2 py-1 text-[11px] font-bold text-accent">MANUAL</span>
         </div>
-        <select
+        <SpeciesAutocomplete
           id="demoSpecies"
           value={demoSpeciesId}
-          onChange={(event) => { setDemoSpeciesId(event.target.value); setResult(undefined); setConfirmedSpeciesId(""); setVariantId(""); }}
-          className="mt-3 min-h-12 w-full rounded-lg border border-line bg-card px-3 text-sm font-medium text-primary"
-        >
-          <option value="">Elegí una especie o probá sin selección</option>
-          {species.map((item) => <option key={item.id} value={item.id}>{item.commonName}</option>)}
-        </select>
-        <p className="mt-2 text-xs leading-5 text-secondary">El resultado es demostrativo; no hay reconocimiento por IA conectado. Podés elegir una especie para probar el recorrido.</p>
+          items={species}
+          onChange={changeSelectedSpecies}
+          emptyLabel="Probar sin selección previa"
+        />
+        <p className="mt-2 text-xs leading-5 text-secondary">Seleccioná una especie para verificar la foto.</p>
       </section>
 
       <button
         type="button"
-        disabled={!preview || analyzing || preparingPhoto}
+        disabled={!canVerifySpecies}
         onClick={identify}
         className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 font-bold text-on-accent transition enabled:active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-45"
       >
         {analyzing || preparingPhoto ? <Loader2 size={19} className="animate-spin" aria-hidden="true" /> : <Sparkles size={19} aria-hidden="true" />}
-        {preparingPhoto ? "Preparando imagen..." : "Identificar especie"}
+        {preparingPhoto ? "Preparando imagen..." : "Verificar especie"}
       </button>
 
       {result ? (
         <section className="animate-pop">
           <h2 className="mb-3 text-lg font-bold text-primary">Resultado</h2>
-          {suggestedSpecies && confirmedSpecies ? (
+          {confirmedSpecies ? (
             <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-panel">
               <AnimalImage src={confirmedSpecies.image} alt={confirmedSpecies.commonName} className="aspect-[16/9] w-full object-cover" />
               <div className="space-y-4 p-4">
                 <p className="rounded-lg bg-soft p-3 text-xs leading-5 text-secondary">{result.message}</p>
+                {hasUnresolvedSpeciesMismatch && suggestedSpecies ? (
+                  <div className="space-y-3 rounded-lg border border-danger/50 bg-danger/10 p-4" role="alert">
+                    <div>
+                      <p className="text-sm font-bold text-danger">La especie seleccionada no coincide</p>
+                      <p className="mt-1 text-sm leading-6 text-primary">La imagen parece corresponder a <strong>{suggestedSpecies.commonName}</strong>. Elegí cómo continuar antes de guardar.</p>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      <button type="button" onClick={() => { setDemoSpeciesId(suggestedSpecies.id); setConfirmedSpeciesId(suggestedSpecies.id); setVariantId(""); setVerificationStatus(nextVerificationStatus({ type: "detected_species_accepted" })); }} className="min-h-11 rounded-lg bg-accent px-3 text-sm font-bold text-on-accent">Usar {suggestedSpecies.commonName}</button>
+                      <button type="button" onClick={() => { changeSelectedSpecies(""); requestAnimationFrame(() => document.getElementById("demoSpecies")?.focus()); }} className="min-h-11 rounded-lg border border-line bg-surface px-3 text-sm font-bold text-primary">Cambiar especie</button>
+                      <button type="button" onClick={identify} disabled={analyzing} className="min-h-11 rounded-lg border border-line bg-surface px-3 text-sm font-bold text-primary disabled:opacity-50">Intentar de nuevo</button>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="divide-y divide-line overflow-hidden rounded-lg border border-line">
                   <div className="p-3">
-                    <p className="text-xs font-bold uppercase text-accent-secondary">Especie sugerida</p>
-                    <p className="mt-1 text-base font-bold text-primary">{suggestedSpecies.commonName}</p>
-                    <p className="text-xs italic text-secondary">{suggestedSpecies.scientificName}</p>
+                    <p className="text-xs font-bold uppercase text-accent-secondary">Resultado visual</p>
+                    <p className="mt-1 text-base font-bold text-primary">{result.detectedCommonName ?? suggestedSpecies?.commonName ?? "Sin identificación"}</p>
+                    <p className="text-xs italic text-secondary">{result.detectedScientificName ?? suggestedSpecies?.scientificName ?? "Sin nombre científico confirmado"}</p>
+                    {result.recognitionConfidence ? <p className="mt-1 text-xs text-secondary">Confianza: {result.recognitionConfidence === "high" ? "alta" : result.recognitionConfidence === "medium" ? "media" : result.recognitionConfidence === "low" ? "baja" : "no determinada"}</p> : null}
+                    {result.matchesSelectedSpecies === true ? <p className="mt-2 text-xs font-semibold text-accent">Coincide con la especie seleccionada.</p> : null}
+                    {result.matchesSelectedSpecies === false ? <p className="mt-2 text-xs font-semibold text-danger">No coincide con la especie seleccionada.</p> : null}
+                    {result.detectedAnimal && !suggestedSpecies ? <p className="mt-2 text-xs leading-5 text-secondary">El animal sugerido no tiene una coincidencia segura en el catálogo. Revisá la selección manual.</p> : null}
                     {result.speciesConfidence !== undefined ? <p className="mt-1 text-xs text-secondary">Confianza del modelo: {Math.round(result.speciesConfidence * 100)}%</p> : null}
                   </div>
                   <div className="p-3">
@@ -369,17 +427,11 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
 
                 <div className="space-y-3 rounded-lg border border-accent/30 bg-accent/5 p-4">
                   <p className="text-xs font-bold uppercase text-accent-secondary">Confirmar o corregir</p>
-                  <label htmlFor="confirmed-species" className="block text-sm font-bold text-primary">Especie
-                    <select id="confirmed-species" value={confirmedSpeciesId} onChange={(event) => { setConfirmedSpeciesId(event.target.value); setVariantId(""); setShowDetail(false); }} className="mt-2 min-h-12 w-full rounded-lg border border-line bg-card px-3 text-sm font-normal text-primary">
-                      {species.map((item) => <option key={item.id} value={item.id}>{item.commonName} · {item.scientificName}</option>)}
-                    </select>
-                  </label>
-                  {confirmedSpecies.variants ? <label htmlFor="variant" className="block text-sm font-bold text-primary">Raza o variante
-                    <select id="variant" value={variantId} onChange={(event) => setVariantId(event.target.value)} className="mt-2 min-h-12 w-full rounded-lg border border-line bg-card px-3 text-sm font-normal text-primary">
-                      <option value="">Sin especificar</option>
-                      {confirmedSpecies.variants.map((variant) => <option key={variant.id} value={variant.id}>{variant.name}</option>)}
-                    </select>
-                  </label> : <p className="text-sm text-secondary">Esta especie no tiene razas o variantes registradas en el catálogo.</p>}
+                  <label htmlFor="confirmed-species" className="block text-sm font-bold text-primary">Especie</label>
+                  <SpeciesAutocomplete id="confirmed-species" value={confirmedSpeciesId} items={species} onChange={changeSelectedSpecies} emptyLabel="Seleccionar otra especie" />
+                  {confirmedSpecies.variants ? <div><label htmlFor="variant" className="block text-sm font-bold text-primary">Raza o variante</label>
+                    <VariantAutocomplete id="variant" value={variantId} items={confirmedSpecies.variants} onChange={setVariantId} />
+                  </div> : <p className="text-sm text-secondary">Esta especie no tiene razas o variantes registradas en el catálogo.</p>}
                   <p className="text-xs leading-5 text-secondary">La selección final es manual. Elegí “Raza no determinada” cuando corresponda; no confirmes una raza sólo por su apariencia.</p>
                 </div>
 
@@ -400,12 +452,13 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
                   <label htmlFor="discovery-notes" className="text-sm font-bold text-primary">Notas (opcional)</label>
                   <textarea id="discovery-notes" value={notes} onChange={(event) => setNotes(event.target.value)} maxLength={240} rows={2} placeholder="¿Dónde lo observaste?" className="mt-2 w-full resize-none rounded-lg border border-line bg-card p-3 text-sm text-primary" />
                 </div>
-                <button type="button" disabled={savingObservation} onClick={async () => {
+                <button type="button" disabled={savingObservation || !savingAllowed} onClick={async () => {
+                  if (!savingAllowed) return;
                   setSavingObservation(true);
-                  await onAddDiscovery({ species: confirmedSpecies, variantId: variantId || undefined, photo: savedPhoto, notes, identificationMethod: confirmedSpecies.id !== result.speciesId || variantId !== (result.variantId ?? "") ? "demo-manual" : result.identificationMethod });
+                  await onAddDiscovery({ species: confirmedSpecies, variantId: variantId || undefined, photo: savedPhoto, notes, identificationMethod: verificationStatus === "verification_unavailable" || confirmedSpecies.id !== result.speciesId || variantId !== (result.variantId ?? "") ? "demo-manual" : result.identificationMethod });
                   setSavingObservation(false);
                 }} className="min-h-12 w-full rounded-lg bg-accent px-4 font-bold text-on-accent disabled:opacity-50">
-                  {savingObservation ? "Guardando..." : "Guardar observación"}
+                  {savingObservation ? "Guardando..." : hasUnresolvedSpeciesMismatch ? "Resolvé la especie para guardar" : "Guardar observación"}
                 </button>
                 <button type="button" onClick={clearImage} className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-line text-sm font-semibold text-primary">
                   <RotateCcw size={17} aria-hidden="true" /> Intentar nuevamente
@@ -415,8 +468,11 @@ export function DiscoverPage({ onAddDiscovery, restoredNativePhoto, onConsumeRes
           ) : (
             <div className="rounded-lg border border-line bg-surface p-6 text-center">
               <ShieldAlert size={30} className="mx-auto text-danger" aria-hidden="true" />
-              <h3 className="mt-3 text-lg font-bold text-primary">No se pudo confirmar la especie</h3>
+              <h3 className="mt-3 text-lg font-bold text-primary">Elegí la especie manualmente</h3>
               <p className="mt-2 text-sm leading-6 text-secondary">{result.message}</p>
+              {result.detectedCommonName ? <p className="mt-2 text-sm font-semibold text-primary">Sugerencia visual: {result.detectedCommonName}</p> : null}
+              <label htmlFor="manual-species" className="mt-4 block text-left text-sm font-bold text-primary">Especie</label>
+              <SpeciesAutocomplete id="manual-species" value={confirmedSpeciesId} items={species} onChange={changeSelectedSpecies} emptyLabel="Seleccioná una especie" />
             </div>
           )}
         </section>

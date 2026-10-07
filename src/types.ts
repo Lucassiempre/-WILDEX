@@ -10,6 +10,7 @@ export type SpeciesVariant = {
   sourceUrl?: string;
 };
 export type IdentificationMethod = "demo-manual" | "demo-filename" | "legacy" | "model";
+export type RecognitionConfidence = "high" | "medium" | "low" | "unknown";
 export type ThematicCollection = {
   id: string;
   title: string;
@@ -179,9 +180,14 @@ export type AnalysisResult = {
   variantId?: string;
   speciesConfidence?: number;
   variantConfidence?: number;
+  detectedAnimal?: boolean;
+  detectedCommonName?: string;
+  detectedScientificName?: string;
+  recognitionConfidence?: RecognitionConfidence;
+  matchesSelectedSpecies?: boolean | null;
   identificationMethod: IdentificationMethod;
-  status: "demo-match" | "demo-sample" | "unconfirmed" | "unrecognized" | "invalid-image" | "connection-error";
-  mode: "demo";
+  status: "demo-match" | "demo-sample" | "model-match" | "model-no-catalog" | "not-animal" | "unconfirmed" | "unrecognized" | "invalid-image" | "connection-error";
+  mode: "demo" | "model";
   message: string;
   analyzedAt: string;
 };

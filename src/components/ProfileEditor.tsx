@@ -6,6 +6,7 @@ import { getSpeciesById } from "../data/species";
 import { validateProfile } from "../services/profileService";
 import type { AvatarConfig, BadgeCatalogItem, ExplorerProfile, Species } from "../types";
 import { ExplorerAvatar } from "./ExplorerAvatar";
+import { SpeciesAutocomplete } from "./CatalogAutocomplete";
 
 type ProfileEditorProps = {
   profile: ExplorerProfile;
@@ -80,7 +81,7 @@ export function ProfileEditor({ profile, discoveredSpecies, earnedBadgeIds, badg
 
           <section className="border-t border-line py-5">
             <h2 className="text-base font-bold text-primary">Animal favorito</h2>
-            {discoveredSpecies.length ? <Field label="Especie descubierta" error={errors.favoriteSpeciesId}><select value={draft.favoriteSpeciesId ?? ""} onChange={(event) => setDraft({ ...draft, favoriteSpeciesId: event.target.value || undefined })} className={fieldClass}><option value="">Sin animal favorito</option>{discoveredSpecies.map((item) => <option key={item.id} value={item.id}>{item.commonName}</option>)}</select></Field> : <p className="mt-2 rounded-lg border border-line bg-surface p-4 text-sm text-secondary">Descubrí tu primera especie para elegirla como favorita.</p>}
+            {discoveredSpecies.length ? <div className="mt-3"><label htmlFor="favorite-species" className="block text-xs font-semibold text-secondary">Especie descubierta</label><SpeciesAutocomplete id="favorite-species" value={draft.favoriteSpeciesId ?? ""} items={discoveredSpecies} onChange={(id) => setDraft({ ...draft, favoriteSpeciesId: id || undefined })} emptyLabel="Sin animal favorito" />{errors.favoriteSpeciesId ? <span className="mt-1 block text-xs text-danger">{errors.favoriteSpeciesId}</span> : null}</div> : <p className="mt-2 rounded-lg border border-line bg-surface p-4 text-sm text-secondary">Descubrí tu primera especie para elegirla como favorita.</p>}
             {favorite ? <p className="mt-2 text-xs italic text-secondary">{favorite.scientificName}</p> : null}
           </section>
 

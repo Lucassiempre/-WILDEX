@@ -19,6 +19,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         input: {
           app: resolve(process.cwd(), "index.html"),
+          privacy: resolve(process.cwd(), "privacy/index.html"),
           deleteAccount: resolve(process.cwd(), "delete-account/index.html"),
         },
       },

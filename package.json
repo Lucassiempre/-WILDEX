@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node --test tests/core.test.mjs tests/storage-v3.test.mjs tests/supabase-schema.test.mjs tests/supabase-client.test.mjs tests/auth.test.mjs tests/initial-sync.test.mjs tests/photo-sync.test.mjs tests/observation-image.test.mjs tests/observation-image-render.test.mjs tests/app-state-coordinator.test.mjs tests/account-deletion.test.mjs tests/delete-account-page.test.mjs",
+    "test": "node --test tests/core.test.mjs tests/storage-v3.test.mjs tests/supabase-schema.test.mjs tests/supabase-client.test.mjs tests/auth.test.mjs tests/initial-sync.test.mjs tests/photo-sync.test.mjs tests/observation-image.test.mjs tests/observation-image-render.test.mjs tests/app-state-coordinator.test.mjs tests/account-deletion.test.mjs tests/delete-account-page.test.mjs tests/visual-recognition.test.mjs tests/visual-recognition-edge.test.mjs",
     "build": "tsc -b && vite build",
     "postbuild": "node scripts/verify-delete-account-build.mjs",
     "build:android": "tsc -b && vite build --base ./",

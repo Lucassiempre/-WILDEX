@@ -1,2 +1,8 @@
 [functions.delete-account]
 verify_jwt = true
+
+[functions.identify-animal]
+verify_jwt = true
+
+[functions.join-beta]
+verify_jwt = false

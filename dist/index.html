@@ -5,25 +5,106 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="WILDEX, prototipo interactivo para identificar, descubrir y coleccionar especies reales."
+      content="Wildex es una app para explorar animales, registrar observaciones y completar tu colección de especies."
+    />
+    <meta name="theme-color" content="#0a1f16" />
+    <meta property="og:title" content="Wildex" />
+    <meta
+      property="og:description"
+      content="Descubrí, registrá y coleccioná especies reales con Wildex."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://lucassiempre.github.io/-WILDEX/" />
+    <meta property="og:site_name" content="Wildex" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://wvoqbobqprljgysyzqof.supabase.co; base-uri 'self'; form-action 'none'"
     />
     <link rel="icon" type="image/png" href="./images/wildex-icon.png" />
-    <script>
-      try {
-        const savedTheme = localStorage.getItem("wildex-theme");
-        document.documentElement.dataset.theme = savedTheme === "light" || savedTheme === "dark"
-          ? savedTheme
-          : matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      } catch {
-        document.documentElement.dataset.theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-      }
-    </script>
-    <title>WILDEX</title>
-    <script type="module" crossorigin src="./assets/app-CttpPXo_.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/supabaseConfig-CSo_vx-6.js">
-    <link rel="stylesheet" crossorigin href="./assets/app-BVg6DRAd.css">
+    <title>Wildex</title>
+    <script type="module" crossorigin src="./assets/app-CTSalFCF.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/supabaseConfig-COc0dMRo.js">
+    <link rel="stylesheet" crossorigin href="./assets/styles-QQ5z4DsL.css">
   </head>
   <body>
-    <div id="root"></div>
+    <main class="site-shell">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <img class="brand-mark" src="./images/wildex-logo.png" width="176" height="48" alt="Wildex" />
+          <p class="kicker">Beta para Android</p>
+          <h1 id="hero-title">Descubrí. Registrá. Coleccioná.</h1>
+          <p class="hero-text">Explorá animales, registrá observaciones y completá tu colección.</p>
+          <a class="download-button" href="./downloads/Wildex-1.0.0-beta.apk" download>
+            Descargar APK
+          </a>
+          <p class="install-note">Android puede pedir permiso para instalar aplicaciones desde esta fuente.</p>
+        </div>
+
+        <aside class="qr-panel" aria-labelledby="qr-title">
+          <div class="qr-frame">
+            <img src="./images/wildex-qr.svg" width="248" height="248" alt="QR para abrir la página pública de Wildex" />
+          </div>
+          <h2 id="qr-title">Escaneá el código</h2>
+          <p>Abre esta página desde tu celular para descargar Wildex.</p>
+        </aside>
+      </section>
+
+      <section class="features" aria-labelledby="features-title">
+        <p class="section-label">Exploración</p>
+        <h2 id="features-title">¿Qué podés hacer en Wildex?</h2>
+        <ul class="feature-grid">
+          <li>Identificar y verificar especies</li>
+          <li>Registrar observaciones con fotos</li>
+          <li>Completar tu colección</li>
+          <li>Descubrir especies y variantes</li>
+          <li>Ganar XP, logros e insignias</li>
+          <li>Crear tu perfil de explorador</li>
+        </ul>
+      </section>
+
+      <section class="beta" aria-labelledby="beta-title">
+        <div>
+          <p class="section-label">Google Play</p>
+          <h2 id="beta-title">Participá en la beta de Google Play</h2>
+          <p>
+            Wildex está preparando su lanzamiento en Google Play. Si querés participar como tester,
+            podés dejar tu Gmail y te agregaremos al programa de pruebas.
+          </p>
+          <p class="gmail-note">Conviene usar el Gmail asociado a Google Play.</p>
+        </div>
+
+        <form class="beta-form" id="beta-form" novalidate>
+          <label for="tester-email">Gmail para la beta</label>
+          <input
+            id="tester-email"
+            name="email"
+            type="email"
+            inputmode="email"
+            autocomplete="email"
+            maxlength="254"
+            placeholder="tu-gmail@gmail.com"
+            required
+          />
+
+          <label class="consent-row" for="tester-consent">
+            <input id="tester-consent" name="consent" type="checkbox" required />
+            <span>Autorizo el uso de este correo únicamente para agregarme como tester de Wildex en Google Play.</span>
+          </label>
+
+          <button id="beta-submit" type="submit">Quiero ser tester</button>
+          <p id="beta-message" class="form-message" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>Wildex · Exploración y colección de especies</p>
+      <nav aria-label="Enlaces legales">
+        <a href="./privacy/">Política de Privacidad</a>
+        <a href="./delete-account/">Eliminar mi cuenta</a>
+      </nav>
+    </footer>
+
   </body>
 </html>
