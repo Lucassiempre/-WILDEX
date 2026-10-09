@@ -72,7 +72,7 @@ test("Android usa cámara URI restaurable, galería moderna e iconos de Wildex",
   const discoverSource = readFileSync(resolve("src/pages/DiscoverPage.tsx"), "utf8");
   assert.match(appSource, /result-duplicate-ignored/);
   assert.doesNotMatch(discoverSource, /finally\s*\{\s*clearNativeCaptureDraft/);
-  assert.match(readFileSync(resolve("android/app/build.gradle"), "utf8"), /versionCode 4[\s\S]*versionName "1\.0\.0"/);
+  assert.match(readFileSync(resolve("android/app/build.gradle"), "utf8"), /versionCode 6[\s\S]*versionName "1\.0\.0"/);
 
   const dimensions = { mdpi: 108, hdpi: 162, xhdpi: 216, xxhdpi: 324, xxxhdpi: 432 };
   for (const [density, expected] of Object.entries(dimensions)) {

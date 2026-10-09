@@ -7,7 +7,7 @@ Esta carpeta contiene la primera aplicación Android nativa de WILDEX. Reutiliza
 - Nombre visible: `WILDEX`.
 - ID de aplicación definitivo: `com.mrlabs.wildex`.
 - Identidad de desarrollador: `MrLabs`.
-- Recursos web nativos: `dist/`.
+- Recursos web nativos: `dist-app/`, generado por `npm run build:app` desde `index.html` y `src/main.tsx`. El sitio publico se compila aparte con `npm run build:site` en `dist-site/`.
 - SDK mínimo: Android 7.0, API 24.
 - SDK objetivo y de compilación: API 36.
 - Versión de prueba actual: `0.1.2` (`versionCode 3`).
@@ -25,7 +25,7 @@ npm run android:sync
 npm run android:open
 ```
 
-`android:sync` compila la web con rutas relativas y ejecuta `cap sync android`. Cada cambio en React debe sincronizarse nuevamente antes de compilar la app.
+`android:sync` ejecuta `build:app`, valida la entrada React y despues ejecuta `cap sync android`. `npm run build` y `build:android` tambien son alias del build de la app. Un build de sitio nunca cambia `dist-app/`. Cada cambio en React debe sincronizarse nuevamente antes de compilar la app.
 
 En Android Studio, esperar la sincronización de Gradle y ejecutar `app` sobre un emulador o dispositivo habilitado para depuración. Para generar una APK de depuración desde Windows:
 

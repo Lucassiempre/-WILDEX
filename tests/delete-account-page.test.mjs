@@ -33,8 +33,8 @@ const webClient = await loadModule("src/delete-account/deleteAccountWebClient.ts
 
 test("Vite declara la página de eliminación como entrada multipágina", async () => {
   const config = await readFile(resolve("vite.config.ts"), "utf8");
-  assert.match(config, /deleteAccount:\s*resolve\(process\.cwd\(\),\s*"delete-account\/index\.html"\)/);
-  assert.match(config, /app:\s*resolve\(process\.cwd\(\),\s*"index\.html"\)/);
+  assert.match(config, /deleteAccount:\s*resolve\(projectDirectory,\s*"site\/delete-account\/index\.html"\)/);
+  assert.match(config, /landing:\s*resolve\(projectDirectory,\s*"site\/index\.html"\)/);
 });
 
 test("la URL de retorno coincide exactamente con GitHub Pages", () => {
@@ -52,7 +52,7 @@ test("la página exige la confirmación literal ELIMINAR", () => {
 });
 
 test("la página explica alcance, permanencia y límite de datos locales", async () => {
-  const html = await readFile(resolve("delete-account/index.html"), "utf8");
+  const html = await readFile(resolve("site/delete-account/index.html"), "utf8");
   assert.match(html, /Eliminación de cuenta Wildex/);
   assert.match(html, /Desarrollado por MrLabs/);
   assert.match(html, /permanente y no se puede deshacer/);
@@ -79,17 +79,17 @@ test("la invocación delete-account no envía userId ni body de identidad", asyn
 
 test("el frontend de eliminación no contiene secretos privilegiados", async () => {
   const files = [
-    resolve("delete-account/index.html"),
+    resolve("site/delete-account/index.html"),
     ...await walkFiles(resolve("src/delete-account")),
   ];
   const source = (await Promise.all(files.map((file) => readFile(file, "utf8")))).join("\n");
   assert.doesNotMatch(source, /sb_secret_|service[_-]?role|SUPABASE_SERVICE_ROLE_KEY|client[_-]?secret|storePassword|keyPassword|\.jks|\.keystore/i);
 });
 
-test("el workflow publica el directorio dist completo", async () => {
+test("el workflow publica exclusivamente el directorio dist-site", async () => {
   const workflow = await readFile(resolve(".github/workflows/deploy.yml"), "utf8");
-  assert.match(workflow, /run:\s*npm run build/);
-  assert.match(workflow, /path:\s*dist/);
+  assert.match(workflow, /run:\s*npm run build:site/);
+  assert.match(workflow, /path:\s*dist-site/);
   assert.match(workflow, /VITE_SUPABASE_URL/);
   assert.match(workflow, /VITE_SUPABASE_PUBLISHABLE_KEY/);
 });

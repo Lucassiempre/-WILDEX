@@ -155,8 +155,22 @@ h1 {
 
 .download-button {
   width: min(100%, 330px);
-  padding: 0 24px;
+  padding: 12px 20px;
   font-size: 1.02rem;
+  text-align: center;
+}
+
+.download-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.download-button-secondary {
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: transparent;
+  font-weight: 700;
 }
 
 .beta-form button:disabled {

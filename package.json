@@ -5,15 +5,18 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "test": "node --test tests/core.test.mjs tests/storage-v3.test.mjs tests/supabase-schema.test.mjs tests/supabase-client.test.mjs tests/auth.test.mjs tests/initial-sync.test.mjs tests/photo-sync.test.mjs tests/observation-image.test.mjs tests/observation-image-render.test.mjs tests/app-state-coordinator.test.mjs tests/account-deletion.test.mjs tests/delete-account-page.test.mjs tests/visual-recognition.test.mjs tests/visual-recognition-edge.test.mjs",
-    "build": "tsc -b && vite build",
-    "postbuild": "node scripts/verify-delete-account-build.mjs",
-    "build:android": "tsc -b && vite build --base ./",
-    "cap:sync": "cap sync",
-    "android:sync": "npm run build:android && cap sync android",
+    "test": "node --test tests/core.test.mjs tests/storage-v3.test.mjs tests/supabase-schema.test.mjs tests/supabase-client.test.mjs tests/auth.test.mjs tests/initial-sync.test.mjs tests/photo-sync.test.mjs tests/observation-image.test.mjs tests/observation-image-render.test.mjs tests/app-state-coordinator.test.mjs tests/account-deletion.test.mjs tests/delete-account-page.test.mjs tests/visual-recognition.test.mjs tests/visual-recognition-edge.test.mjs tests/build-separation.test.mjs",
+    "dev:site": "vite --mode site",
+    "build": "npm run build:app",
+    "build:app": "tsc -b && vite build --mode app && node scripts/verify-app-build.cjs",
+    "build:site": "tsc -b && vite build --mode site && node scripts/verify-delete-account-build.mjs && node scripts/verify-landing-build.mjs",
+    "build:android": "npm run build:app",
+    "cap:sync": "npm run build:app && cap sync android",
+    "android:sync": "npm run cap:sync",
     "android:open": "cap open android",
-    "android:build:debug": "android\\gradlew.bat -p android assembleDebug",
-    "preview": "vite preview"
+    "android:build:debug": "npm run android:sync && android\\gradlew.bat -p android assembleDebug",
+    "preview": "vite preview --mode app",
+    "preview:site": "vite preview --mode site"
   },
   "dependencies": {
     "@aparajita/capacitor-secure-storage": "^8.0.1",

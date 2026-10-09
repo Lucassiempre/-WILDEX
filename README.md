@@ -84,7 +84,7 @@ La URL local habitual es `http://127.0.0.1:5173/`. Build de producción:
 
 ```bash
 npm test
-npm run build
+npm run build:app
 npm run preview
 ```
 
@@ -96,14 +96,16 @@ La interfaz fue revisada sin desplazamiento horizontal a 320, 360, 390, 768 y 19
 
 ## GitHub Pages
 
-`vite.config.ts` toma el nombre del repositorio de `GITHUB_REPOSITORY` durante GitHub Actions y configura la base `/-WILDEX/` para `lucassiempre/-WILDEX`. Los recursos locales usan `BASE_URL`; no hay rutas de React Router que fallen al actualizar. El workflow `.github/workflows/deploy.yml` instala con `npm ci`, ejecuta las pruebas, compila y publica únicamente `dist` al hacer push a `main` (o al ejecutarlo manualmente). En el repositorio, seleccionar `Settings > Pages > Build and deployment > GitHub Actions`. Sitio previsto: [lucassiempre.github.io/-WILDEX](https://lucassiempre.github.io/-WILDEX/). Este repositorio local no publica cambios automáticamente hasta subirlos.
+La app y el sitio publico usan entradas y salidas separadas. `npm run build:app` compila `index.html` -> `src/main.tsx` en `dist-app/`. `npm run build:site` compila `site/index.html`, `site/privacy/index.html` y `site/delete-account/index.html` en `dist-site/`, con downloads, QR y formulario beta. `npm run dev:site` y `npm run preview:site` muestran el sitio publico.
+
+`vite.config.ts` configura la base `/-WILDEX/` desde `GITHUB_REPOSITORY` solo para el build del sitio. El workflow `.github/workflows/deploy.yml` ejecuta tests, `npm run build:site` y publica exclusivamente `dist-site/`. En el repositorio, seleccionar `Settings > Pages > Build and deployment > GitHub Actions`. Sitio previsto: [lucassiempre.github.io/-WILDEX](https://lucassiempre.github.io/-WILDEX/). No se publica nada hasta subir los cambios.
 
 ## Android con Capacitor
 
-La primera plataforma Android nativa vive en `android/` y reutiliza esta aplicación mediante Capacitor 8. `capacitor.config.ts` usa `webDir: dist` y el identificador definitivo `com.mrlabs.wildex`, bajo la identidad de desarrollador MrLabs. Cámara y galería usan resultados URI y restauración de Activity; un borrador temporal permite volver a Descubrir con la foto aunque Android haya recreado el proceso. Almacenamiento privado, barra de estado, teclado y botón Atrás tienen adaptadores nativos. La web y GitHub Pages conservan su flujo actual.
+La primera plataforma Android nativa vive en `android/` y reutiliza esta aplicación mediante Capacitor 8. `capacitor.config.ts` usa `webDir: dist-app` y el identificador definitivo `com.mrlabs.wildex`, bajo la identidad de desarrollador MrLabs. Cámara y galería usan resultados URI y restauración de Activity; un borrador temporal permite volver a Descubrir con la foto aunque Android haya recreado el proceso. Almacenamiento privado, barra de estado, teclado y botón Atrás tienen adaptadores nativos. Capacitor verifica que `dist-app/` tenga la entrada React real antes de `sync` o `copy`; rechaza una landing o un build incompleto. El sitio publico nunca se copia a Android.
 
 ```bash
-npm run build:android
+npm run build:app
 npm run android:sync
 npm run android:open
 ```

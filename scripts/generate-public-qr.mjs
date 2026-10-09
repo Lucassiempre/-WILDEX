@@ -44,7 +44,7 @@ drawFinder(size - 7, 0);
 drawFinder(0, size - 7);
 drawAlignment(26, 26);
 
-for (let i = 0; i < size; i += 1) {
+for (let i = 8; i < size - 8; i += 1) {
   setModule(6, i, i % 2 === 0);
   setModule(i, 6, i % 2 === 0);
 }
@@ -59,10 +59,6 @@ for (let i = 0; i < 9; i += 1) {
 for (let i = 0; i < 8; i += 1) {
   reserved[8][size - 1 - i] = true;
   reserved[size - 1 - i][8] = true;
-}
-for (let i = 8; i < 15; i += 1) {
-  reserved[size - 15 + i][8] = true;
-  reserved[8][size - 15 + i] = true;
 }
 
 const appendBits = (bits, value, count) => {

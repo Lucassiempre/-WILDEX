@@ -2,7 +2,7 @@ import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { resolve } from "node:path";
 
-const outputPath = resolve("dist/delete-account/index.html");
+const outputPath = resolve("dist-site/delete-account/index.html");
 
 await access(outputPath, constants.R_OK);
 const html = await readFile(outputPath, "utf8");
@@ -17,4 +17,4 @@ if (!html.includes("Eliminación de cuenta Wildex")) {
   throw new Error("La salida no contiene la página pública de eliminación de Wildex.");
 }
 
-console.log("Verified dist/delete-account/index.html");
+console.log("Verified dist-site/delete-account/index.html");
